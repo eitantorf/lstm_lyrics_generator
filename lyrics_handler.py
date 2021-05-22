@@ -45,7 +45,6 @@ class LyricsHandler():
     def generate_lyrics(self, seed_text, num_next_words, model):
         lyrics = seed_text
         for i in range(num_next_words):
-        for i in range(num_next_words):
             tokens = self.tokenizer.texts_to_sequences([lyrics])[0]
             tokens_pad = pad_sequences([tokens], maxlen=self.max_sequence_len - 1, padding='pre')
             prediction = model.predict(tokens_pad)
