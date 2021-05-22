@@ -13,7 +13,7 @@ class LSTMModel():
         '''
         self.mode = mode
 
-    def build_model(self, num_words, embed_dim, embed_weights):
+    def build_model(self, num_words, embed_dim, embed_weights, dropout=0.5):
         # create model embedding layer
 
         embedding_layer = Embedding(
@@ -31,7 +31,7 @@ class LSTMModel():
             midi_feat = keras.Input(shape=(1,))
             x = Concatenate()(x, midi_feat)
             input = [input, midi_feat]
-        x = layers.Dropout(0.1)(x)
+        x = layers.Dropout(dropout)(x)
         pred = layers.Dense(num_words, activation='softmax')(x)
         model = keras.Model(input, pred)
         model.compile(loss='sparse_categorical_crossentropy', optimizer='adam')
