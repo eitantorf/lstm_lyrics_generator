@@ -39,8 +39,11 @@ class LSTMModel():
         self.model = model
         print(model.summary())
 
-    def train_model(self, word_seq, labels, midi_feat=None, epochs=10):
+    def train_model(self, word_seq, labels, tensorboard_callback, midi_feat=None, epochs=10, validation_split=0):
         input = word_seq
         if midi_feat is not None:
             input = [word_seq,midi_feat]
-        self.model.fit(input, labels, epochs=epochs, verbose=1)
+        self.model.fit(input, labels, callbacks=[tensorboard_callback], validation_split=validation_split, epochs=epochs, verbose=1)
+
+    def predict(self, input):
+        return self.model.predict(input, verbose=0).reshape(-1)
