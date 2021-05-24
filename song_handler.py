@@ -1,7 +1,13 @@
 import numpy as np
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
-import midi_feature_extractor as mfe
+import os
+IS_COLAB = (os.name == 'posix')
+
+if IS_COLAB:
+    import lstm_lyrics_generator.midi_feature_extractor as mfe
+else:
+    import midi_feature_extractor as mfe
 
 class SongHandler():
     def __init__(self, lyrics_list, max_sequence_len = 20):
