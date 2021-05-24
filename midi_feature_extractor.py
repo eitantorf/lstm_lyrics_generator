@@ -30,6 +30,8 @@ def get_midi_flat_features(pm):
     # beats per second
     bps = len(pm.get_beats()) / pm.get_end_time()
     features.append(bps)
+    # num of drum instruments
+    features.append(sum([x.is_drum for x in pm.instruments]))
     # create a one hot vector for list of instruments
     instruments = np.zeros(128)  # 128 possible instruments
     programs = [i.program for i in pm.instruments]
@@ -52,3 +54,31 @@ def get_midi_flat_features(pm):
     chroma = chroma.reshape(chroma.size)
     features.extend(chroma)
     return np.asarray(features)
+
+def get_per_word_features(pm, num_words, sec_per_word):
+    # for each word create its set of features based on sec_per_word
+    result = np.zeros(shape=(num_words, 128*2))
+    for i in range(0, num_words):
+        start_time = sec_per_word*i + 10 #add 10 to account for intro
+        end_time = start_time + sec_per_word
+        instrument_vector = np.zeros(128)
+        notes_vector = np.zeros(128)
+        inst_cnt = np.zeros(128)
+        note_cnt = np.zeros(128)
+        for instrument in pm.instruments:
+            for note in instrument.notes:
+                if (note.start <= start_time) & (note.end < end_time):
+                    # this note in this instruments happens in current word
+                    instrument_vector[instrument.program] += note.pitch
+                    inst_cnt[instrument.program] +=1
+                    notes_vector[note.pitch] += note.velocity
+                    note_cnt[note.pitch] += 1
+                elif note.start > start_time:
+                    # following notes happen later so we can break
+                    break
+        # avg both arrays and concatenate
+        instrument_vector = np.divide(instrument_vector, inst_cnt, out=np.zeros_like(instrument_vector), where=inst_cnt!=0)
+        notes_vector = np.divide(notes_vector, note_cnt, out=np.zeros_like(notes_vector), where=note_cnt!=0)
+        result[i] = np.concatenate((instrument_vector,notes_vector))
+    return result
+
