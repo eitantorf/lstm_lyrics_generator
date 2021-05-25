@@ -86,15 +86,25 @@ class SongHandler():
     def get_num_words(self):
         return self.num_words
 
-    def generate_lyrics(self, seed_text, num_next_words, model, midi_features=None):
+    def generate_lyrics(self, seed_text, num_next_words, model, midi_sequence=None, midi_sequence_full=None):
         lyrics = seed_text
         for i in range(num_next_words):
             tokens = self.tokenizer.texts_to_sequences([lyrics])[0]
             tokens_pad = pad_sequences([tokens], maxlen=self.max_sequence_len - 1, padding='pre')
-            if midi_features is not None:
-                prediction = model.predict(tokens_pad)
+            # run through midi and pad if needed
+            passed_max = 1 if i >= (self.max_sequence_len-1) else 0
+            if passed_max:
+                #no need to pad
+                midi_sequence_full_pad = midi_sequence_full[(i - (self.max_sequence_len - 2)):i + 1, :]
             else:
-                prediction = model.predict([tokens_pad, midi_features])
+                midi_sequence_full_pad = midi_sequence_full[0:i+1,:]
+                midi_sequence_full_pad = self.pad_midi_seq(midi_sequence_full_pad, self.max_sequence_len - 1)
+            if midi_sequence_full is not None:
+                prediction = model.predict([tokens_pad, midi_sequence, midi_sequence_full_pad])
+            elif midi_sequence is not None:
+                prediction = model.predict([tokens_pad, midi_sequence])
+            else:
+                prediction = model.predict(tokens_pad)
             index_predicted = np.random.choice(len(prediction), p=prediction)
             output_word = self.tokenizer.sequences_to_texts([[index_predicted]])
             lyrics += " " + output_word[0]
