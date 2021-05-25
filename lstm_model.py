@@ -28,22 +28,25 @@ class LSTMModel():
         )
 
         # create rest of model layers
-        input = keras.Input(shape=(None,), dtype="int64")
+        input = keras.Input(shape=(19), dtype="int64")
         embedded_seq = embedding_layer(input)
         x = layers.LSTM(150)(embedded_seq)
         x = layers.Dropout(dropout)(x)
-        if 'midi' in self.mode:
+        if self.mode =='words_seq_midi':
             # add basic midi features
-            midi_feat = keras.Input(shape=(259,))
+            midi_feat = keras.Input(shape=(260))
             midi_feat2 = layers.Dense(20, activation='relu')(midi_feat)
             x = Concatenate()([x, midi_feat2])
             input = [input, midi_feat]
         if self.mode == 'words_seq_midi_seq':
+            # add basic midi features
+            midi_feat = keras.Input(shape=(260))
+            midi_feat2 = layers.Dense(20, activation='relu')(midi_feat)
             # add sequence midi data LSTM layer
-            midi_seq_input = keras.Input(shape=(None,), dtype="float64")
+            midi_seq_input = keras.Input(shape=(19,5), dtype="float64")
             midi_seq_output = layers.LSTM(30)(midi_seq_input)
             midi_seq_output = layers.Dropout(dropout)(midi_seq_output)
-            x = Concatenate()([x, midi_seq_output])
+            x = Concatenate()([x, midi_feat2, midi_seq_output])
             input = [input, midi_feat, midi_seq_input]
         pred = layers.Dense(num_words, activation='softmax')(x)
         model = keras.Model(input, pred)
@@ -57,7 +60,7 @@ class LSTMModel():
         input = word_seq
         if full_midi_sequences is not None:
             input = [word_seq, midi_seq, full_midi_sequences]
-        if midi_seq is not None:
+        elif midi_seq is not None:
             input = [word_seq,midi_seq]
         early_stopping = EarlyStopping(
                                     monitor="val_loss",
