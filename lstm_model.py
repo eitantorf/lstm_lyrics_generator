@@ -53,10 +53,12 @@ class LSTMModel():
         self.model = model
         print(model.summary())
 
-    def train_model(self, word_seq, labels, tensorboard_callback, midi_feat=None, epochs=10, validation_split=0):
+    def train_model(self, word_seq, labels, tensorboard_callback, midi_seq=None, full_midi_sequences=None, epochs=10, validation_split=0):
         input = word_seq
-        if midi_feat is not None:
-            input = [word_seq,midi_feat]
+        if full_midi_sequences is not None:
+            input = [word_seq, midi_seq, full_midi_sequences]
+        if midi_seq is not None:
+            input = [word_seq,midi_seq]
         early_stopping = EarlyStopping(
                                     monitor="val_loss",
                                     min_delta=0.05,
