@@ -41,7 +41,7 @@ class LSTMModel():
         if self.mode == 'words_seq_midi_seq':
             # add sequence midi data LSTM layer
             midi_seq_input = keras.Input(shape=(None,), dtype="float64")
-            midi_seq_output = layers.LSTM(150)(midi_seq_input)
+            midi_seq_output = layers.LSTM(30)(midi_seq_input)
             midi_seq_output = layers.Dropout(dropout)(midi_seq_output)
             x = Concatenate()([x, midi_seq_output])
             input = [input, midi_feat, midi_seq_input]
