@@ -90,8 +90,11 @@ def get_per_word_features(pm, num_words, sec_per_word):
         # create the final feature for word
         num_instruments = len(instruments)
         num_drum_instruments = len(drum_instruments)
-        avg_pitch = sum_pitch/num_notes
-        avg_velocity = sum_velocity/num_notes
+        avg_pitch = 0
+        avg_velocity = 0
+        if num_notes > 0:
+            avg_pitch = sum_pitch/num_notes
+            avg_velocity = sum_velocity/num_notes
         result[i] = np.array([num_instruments, num_drum_instruments, num_notes, avg_pitch, avg_velocity])
     return result
 
