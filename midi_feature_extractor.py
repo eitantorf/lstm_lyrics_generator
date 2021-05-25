@@ -64,28 +64,34 @@ def check_overlap(note_start, note_end, word_start, word_end):
 
 def get_per_word_features(pm, num_words, sec_per_word):
     # for each word create its set of features based on sec_per_word
-    result = np.zeros(shape=(num_words, 128*2))
+    result = np.zeros(shape=(num_words, 5))
     for i in range(0, num_words):
         start_time = sec_per_word*i + 10 #add 10 to account for intro
         end_time = start_time + sec_per_word
-        instrument_vector = np.zeros(128)
+        instruments = set()
+        drum_instruments = set()
         notes_vector = np.zeros(128)
-        inst_cnt = np.zeros(128)
-        note_cnt = np.zeros(128)
+        num_notes = 0
+        sum_pitch = 0
+        sum_velocity = 0
         for instrument in pm.instruments:
             for note in instrument.notes:
                 if check_overlap(note.start, note.end, start_time, end_time):
                     # this note in this instruments happens in current word
-                    instrument_vector[instrument.program] += note.pitch
-                    inst_cnt[instrument.program] +=1
-                    notes_vector[note.pitch] += note.velocity
-                    note_cnt[note.pitch] += 1
-                elif note.start > start_time:
+                    num_notes += 1
+                    instruments.add(instrument.program)
+                    if instrument.is_drum:
+                        drum_instruments.add(instrument.program)
+                    sum_pitch += note.pitch
+                    sum_velocity += note.velocity
+                elif note.start > end_time:
                     # following notes happen later so we can break
                     break
-        # avg both arrays and concatenate
-        instrument_vector = np.divide(instrument_vector, inst_cnt, out=np.zeros_like(instrument_vector), where=inst_cnt!=0)
-        notes_vector = np.divide(notes_vector, note_cnt, out=np.zeros_like(notes_vector), where=note_cnt!=0)
-        result[i] = np.concatenate((instrument_vector,notes_vector))
+        # create the final feature for word
+        num_instruments = len(instruments)
+        num_drum_instruments = len(drum_instruments)
+        avg_pitch = sum_pitch/num_notes
+        avg_velocity = sum_velocity/num_notes
+        result[i] = np.array([num_instruments, num_drum_instruments, num_notes, avg_pitch, avg_velocity])
     return result
 
