@@ -55,6 +55,13 @@ def get_midi_flat_features(pm):
     features.extend(chroma)
     return np.asarray(features)
 
+def check_overlap(note_start, note_end, word_start, word_end):
+    if (((note_start <= word_start) and (note_end > word_start))
+        or
+       ((note_start <= word_end) and (note_start > word_start))):
+        return True
+    return False
+
 def get_per_word_features(pm, num_words, sec_per_word):
     # for each word create its set of features based on sec_per_word
     result = np.zeros(shape=(num_words, 128*2))
@@ -67,7 +74,7 @@ def get_per_word_features(pm, num_words, sec_per_word):
         note_cnt = np.zeros(128)
         for instrument in pm.instruments:
             for note in instrument.notes:
-                if (note.start <= start_time) & (note.end < end_time):
+                if check_overlap(note.start, note.end, start_time, end_time):
                     # this note in this instruments happens in current word
                     instrument_vector[instrument.program] += note.pitch
                     inst_cnt[instrument.program] +=1
