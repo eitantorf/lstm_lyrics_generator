@@ -2,6 +2,8 @@ import numpy as np
 from keras.preprocessing.sequence import pad_sequences
 from keras.preprocessing.text import Tokenizer
 import os
+from tqdm import tqdm
+
 IS_COLAB = (os.name == 'posix')
 
 if IS_COLAB:
@@ -22,7 +24,7 @@ class SongHandler():
         tokened_lyrics = self.tokenizer.texts_to_sequences(songs_lyrics)
         train_sequences = []
         midi_sequence = []
-        for k, lyric in enumerate(tokened_lyrics):
+        for k, lyric in enumerate(tqdm(tokened_lyrics)):
             for i in range(1, len(lyric)):
                 passed_max = 1 if i >= self.max_sequence_len else 0
                 seq = lyric[passed_max*(i-self.max_sequence_len+1):i+1]
@@ -42,7 +44,7 @@ class SongHandler():
         train_sequences = []
         midi_sequence = []
         full_midi_sequence = []
-        for k, lyric in enumerate(tokened_lyrics):
+        for k, lyric in enumerate(tqdm(tokened_lyrics)):
             num_words = len(lyric)
             sec_per_word = (songs_durations[k] - 20) / num_words  # remove 10 second intro and 10 second
             # get the features per all words in song
